@@ -8,18 +8,35 @@ This project aims to analyze hate speech in social media through two main resear
 ## Project Structure
 ```
 nlp4css_final_project/
-├── data/                    # Data directory
-│   ├── raw/                # Raw datasets
-│   ├── processed/          # Processed datasets
-│   └── results/            # Analysis results
-├── src/                    # Source code
-│   ├── data_processing/    # Data preprocessing scripts
-│   ├── analysis/          # Analysis scripts
-│   ├── models/            # Model implementation
-│   └── utils/             # Utility functions
-├── notebooks/             # Jupyter notebooks for analysis
-├── requirements.txt       # Project dependencies
-└── README.md             # Project documentation
+├── src/
+│   ├── rq1/                            # Team A: Topic modeling
+│   │   ├── data_processing/            # loading & prep of Measuring Hate Speech
+│   │   │   └── loader.py
+│   │   ├── models/                     # BERTopic, Top2Vec, LDA wrappers
+│   │   │   └── topic_models.py
+│   │   ├── analysis/                   # coherence scoring, qualitative checks
+│   │   │   └── evaluate_topics.py
+│   │   └── utils/                      # shared/helper functions
+│   │       └── text_utils.py
+│   │
+│   └── rq2/                            # Team B: Supervised BERT classification
+│       ├── data_processing/            # loading & preprocessing
+│       │   └── loader.py
+│       ├── models/                     # fine-tuning & prediction
+│       │   └── finetune.py
+│       ├── evaluation/                 # subgroup metrics & robustness tests
+│       │   └── subgroup_eval.py
+│       ├── interpretability/           # LIME, SHAP wrappers
+│       │   └── explainers.py
+│       └── utils/                      # config, logger, common funcs
+│           └── config.py
+│
+├── notebooks/
+│   ├── rq1/                            # exploratory & demo notebooks for RQ1
+│   └── rq2/                            # experiments & visualizations for RQ2
+│
+├── requirements.txt
+└── README.md
 ```
 
 ## Setup Instructions
@@ -34,53 +51,76 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Team Roles and Responsibilities
+## Research Questions Implementation
 
-### Team Member 1: Data Collection and Preprocessing
-- Collect and curate social media datasets
-- Implement data cleaning and preprocessing pipelines
-- Create data documentation
+### Research Question 1: Identity-Specific Terms Analysis
+Team A will focus on identifying and analyzing identity-specific terms in hate speech using topic modeling approaches.
 
-### Team Member 2: Identity Term Analysis
-- Implement term extraction and analysis
-- Develop methods to identify identity-specific terms
-- Create visualizations for term analysis
+#### Implementation Steps:
+1. **Data Processing** (`src/rq1/data_processing/`)
+   - Load and preprocess the Measuring Hate Speech dataset
+   - Implement text cleaning and normalization
+   - Extract identity-specific terms
 
-### Team Member 3: Model Implementation
-- Implement and fine-tune hate speech detection models
-- Set up model evaluation pipeline
-- Document model performance metrics
+2. **Topic Modeling** (`src/rq1/models/`)
+   - Implement BERTopic, Top2Vec, and LDA models
+   - Fine-tune models for optimal performance
+   - Extract and analyze topics
 
-### Team Member 4: Interpretability Analysis
-- Implement LIME/SHAP analysis
-- Analyze model weights and feature importance
-- Create interpretability visualizations
+3. **Analysis** (`src/rq1/analysis/`)
+   - Evaluate topic coherence
+   - Perform qualitative analysis of topics
+   - Identify identity-specific patterns
 
-## Research Pipeline
+### Research Question 2: Model Interpretability Analysis
+Team B will focus on analyzing model performance and interpretability using pre-trained hate speech detection models.
 
-1. **Data Collection and Preprocessing**
-   - Collect social media datasets with hate speech annotations
-   - Clean and preprocess text data
-   - Split data into train/validation/test sets
+#### Implementation Steps:
+1. **Data Processing** (`src/rq2/data_processing/`)
+   - Load and preprocess data for model training
+   - Create train/validation/test splits
+   - Implement data augmentation if needed
 
-2. **Identity Term Analysis (RQ1)**
-   - Extract and analyze identity-specific terms
-   - Create frequency distributions and visualizations
-   - Document patterns in identity-specific hate speech
-
-3. **Model Implementation**
-   - Implement pre-trained hate speech detection models:
+2. **Model Implementation** (`src/rq2/models/`)
+   - Implement and fine-tune pre-trained models:
      - Toxigen Hate BERT
      - Cardiffnlp/twitter-roberta-base-hate-latest
      - Hate-speech-CNERG/bert-base-uncased-hatexplain
-   - Fine-tune models on the dataset
-   - Evaluate model performance
+   - Set up model evaluation pipeline
 
-4. **Interpretability Analysis (RQ2)**
-   - Apply LIME/SHAP to analyze model decisions
-   - Analyze model weights for identity-specific terms
-   - Compare model reliance on identity terms
-   - Draw conclusions about model generalizability
+3. **Evaluation** (`src/rq2/evaluation/`)
+   - Implement subgroup analysis
+   - Calculate performance metrics
+   - Analyze model robustness
+
+4. **Interpretability** (`src/rq2/interpretability/`)
+   - Implement LIME and SHAP analysis
+   - Analyze feature importance
+   - Visualize model decisions
+
+## Team Roles and Responsibilities
+
+### Team A (RQ1): Topic Modeling Team
+- **Member 1**: Data Processing
+  - Implement data loading and preprocessing
+  - Create data documentation
+  - Set up data pipelines
+
+- **Member 2**: Model Implementation
+  - Implement topic modeling approaches
+  - Fine-tune models
+  - Document model configurations
+
+### Team B (RQ2): Model Analysis Team
+- **Member 3**: Model Implementation
+  - Implement and fine-tune hate speech models
+  - Set up evaluation pipeline
+  - Document model performance
+
+- **Member 4**: Interpretability Analysis
+  - Implement LIME/SHAP analysis
+  - Analyze model weights
+  - Create interpretability visualizations
 
 ## Dependencies
 - Python 3.8+
@@ -92,4 +132,19 @@ pip install -r requirements.txt
 - matplotlib
 - seaborn
 - lime
-- shap 
+- shap
+- bertopic
+- top2vec
+- gensim (for LDA)
+- spacy
+- nltk
+
+## Notebooks
+- `notebooks/rq1/`: Contains exploratory analysis and topic modeling experiments
+- `notebooks/rq2/`: Contains model training, evaluation, and interpretability experiments
+
+## Contributing
+1. Create a new branch for your feature: `git checkout -b feature/your-feature-name`
+2. Commit your changes: `git commit -m 'Add some feature'`
+3. Push to the branch: `git push origin feature/your-feature-name`
+4. Submit a pull request 
