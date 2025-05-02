@@ -117,6 +117,13 @@ Team B will focus on analyzing model performance and interpretability using pre-
   - Set up evaluation pipeline
   - Document model performance
 
+results:
+| Model                    | Accuracy | Precision | Recall | F1-score |
+|--------------------------|----------|-----------|--------|----------|
+| /roberta_toxicity_classifier | 0.8508   | 0.7795    | 0.9613 | 0.8609   |
+| hateXplain               | 0.7626   | 0.7492    | 0.7601 | 0.7546   |
+
+
 - **Member 4**: Interpretability Analysis
   - Implement LIME/SHAP analysis
   - Analyze model weights
