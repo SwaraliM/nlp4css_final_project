@@ -5,27 +5,12 @@ import json
 import argparse
 from typing import Dict
 import numpy as np
+import pandas as pd
 import torch
 from tqdm import tqdm
-from rq2.data_processor import DataProcessor
-from rq2.model_trainer import ModelTrainer
-from rq2.evaluator import Evaluator
-
-def print_device_info():
-    """Print detailed information about available devices and CUDA setup"""
-    print("\n=== Device Information ===")
-    print(f"PyTorch version: {torch.__version__}")
-    print(f"CUDA available: {torch.cuda.is_available()}")
-    if torch.cuda.is_available():
-        print(f"CUDA version: {torch.version.cuda}")
-        print(f"Current CUDA device: {torch.cuda.current_device()}")
-        print(f"Device name: {torch.cuda.get_device_name(0)}")
-        print(f"Device properties: {torch.cuda.get_device_properties(0)}")
-        print(f"Memory allocated: {torch.cuda.memory_allocated(0) / 1024**2:.2f} MB")
-        print(f"Memory reserved: {torch.cuda.memory_reserved(0) / 1024**2:.2f} MB")
-    else:
-        print("Using CPU")
-    print("=========================\n")
+from data_processor import DataProcessor
+from model_trainer import ModelTrainer
+from evaluator import Evaluator
 
 def to_serializable(obj):
     if isinstance(obj, np.ndarray):
@@ -55,7 +40,18 @@ def train_and_evaluate_model(
     (train_df, val_df, test_df,
      train_enc, train_lbls,
      val_enc,   val_lbls,
-     test_enc,  test_lbls) = dp.prepare_dataset(data_path, subset_size)
+     test_enc,  test_lbls) = dp.prepare_dataset(
+    csv_path=data_path,
+    subset_size=subset_size
+)
+    # Print overall stats on the *full* DataFrame (we have to reload or capture it)
+    full_df = pd.concat([train_df, val_df, test_df], ignore_index=True)
+    print("\nDataset Statistics (full):")
+    print(f"  Total samples: {len(full_df)}")
+    print(f"  Hate samples : {full_df['label'].sum()} "
+        f"({full_df['label'].mean()*100:.2f}%)")
+    print("\nTarget-group distribution:")
+    print(full_df["target_group"].value_counts().to_string())
     
     print(f"Split sizes → train: {len(train_df)}, val: {len(val_df)}, test: {len(test_df)}")
     
@@ -101,23 +97,23 @@ def main():
                         help="If set, sample up to this many examples per split for quick tests.")
     args = parser.parse_args()
     
-    # Print detailed device information
-    print_device_info()
-    
-    # Verify CUDA is available if we're on a GPU node
-    if os.environ.get('CUDA_VISIBLE_DEVICES') is not None:
-        if not torch.cuda.is_available():
-            raise RuntimeError("CUDA_VISIBLE_DEVICES is set but CUDA is not available. "
-                             "Please check your CUDA installation and SLURM configuration.")
+    # Basic device check
+    print(f"\nPyTorch {torch.__version__}")
+    print(f"CUDA available: {torch.cuda.is_available()}")
+    if torch.cuda.is_available():
+        print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+    else:
+        print("Using CPU")
     
     os.makedirs(args.output_dir, exist_ok=True)
     all_results = {}
+    
     for model_name in tqdm(args.models, desc="Models"):
         try:
-            # choose tokenizer: if user passed one flag, use it for all;
-            # otherwise default to the model name
             tok = args.tokenizer_name or model_name
             out_dir = os.path.join(args.output_dir, model_name.replace('/', '_'))
+            print(f"\nProcessing model: {model_name}")
+            
             res = train_and_evaluate_model(
                 model_name=model_name,
                 tokenizer_name=tok,
@@ -130,12 +126,8 @@ def main():
             )
             all_results[model_name] = res
         except Exception as e:
-            print(f"\nError processing model {model_name}:")
-            print(f"Error type: {type(e).__name__}")
-            print(f"Error message: {str(e)}")
-            print("\nStack trace:")
-            import traceback
-            traceback.print_exc()
+            print(f"\nError with model {model_name}:")
+            print(f"Error: {str(e)}")
             continue
     
     print("\n=== Model Comparisons ===")
