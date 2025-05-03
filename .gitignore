@@ -42,7 +42,7 @@ results/
 *.ipynb
 
 # Data files
-*.csv
+# *.csv
 *.json
 *.pkl
 *.h5
