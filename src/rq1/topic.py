@@ -1,0 +1,204 @@
+# pipeline.py
+import pandas as pd
+from datasets import load_dataset
+from bertopic import BERTopic
+from top2vec import Top2Vec
+from gensim import corpora
+from gensim.models import LdaModel
+from gensim.models.coherencemodel import CoherenceModel
+from nltk.tokenize import word_tokenize
+import nltk
+nltk.download('punkt')
+
+TARGET_COLUMNS = [
+    'target_race', 'target_religion', 'target_origin',
+    'target_gender', 'target_sexuality', 'target_age',
+    'target_disability'
+]
+
+SUBJECT_COLUMNS = [
+    'target_race_asian', 'target_race_black', 'target_race_latinx', 'target_race_middle_eastern', 'target_race_native_american', 'target_race_pacific_islander', 'target_race_white', 'target_race_other', 'target_religion_atheist', 'target_religion_buddhist', 'target_religion_christian', 'target_religion_hindu', 'target_religion_jewish', 'target_religion_mormon', 'target_religion_muslim', 'target_religion_other', 'target_origin_immigrant', 'target_origin_migrant_worker', 'target_origin_specific_country', 'target_origin_undocumented', 'target_origin_other', 'target_gender_men', 'target_gender_non_binary', 'target_gender_transgender_men', 'target_gender_transgender_unspecified', 'target_gender_transgender_women', 'target_gender_women', 'target_gender_other', 'target_sexuality_bisexual', 'target_sexuality_gay', 'target_sexuality_lesbian', 'target_sexuality_straight', 'target_sexuality_other', 'target_age_children', 'target_age_teenagers', 'target_age_young_adults', 'target_age_middle_aged', 'target_age_seniors', 'target_age_other', 
+    'target_disability_physical', 'target_disability_cognitive', 'target_disability_neurological', 'target_disability_visually_impaired', 'target_disability_hearing_impaired', 'target_disability_unspecific', 'target_disability_other'
+]
+
+def load_and_filter_data(min_score=0.5):
+    dataset = load_dataset("ucberkeley-dlab/measuring-hate-speech")
+    df = pd.DataFrame(dataset["train"])
+    df_filtered = df[df["hate_speech_score"] > min_score].copy()
+    return df_filtered
+
+
+def group_stats():
+    dataset = load_dataset("ucberkeley-dlab/measuring-hate-speech")
+    df = pd.DataFrame(dataset["train"])
+    subgroup_cols = [col for col in df.columns if col.startswith("target_") and col.count("_") >= 2]
+    print(f"共有 {len(subgroup_cols)} 个 target subgroup 字段：\n")
+
+
+
+def compute_coherence(topics, texts, dictionary, coherence='c_v'):
+    return CoherenceModel(topics=topics, texts=texts, dictionary=dictionary, coherence=coherence).get_coherence()
+
+
+
+def run_bertopic(df):
+    print("Running BERTopic...")
+    results = {}
+    for col in SUBJECT_COLUMNS:
+        subset = df[df[col] == 1].copy()
+        if len(subset) < 30: 
+            continue  # skip small groups
+        group_name = col.replace("target_", "")
+        texts = subset["text"].tolist()
+        model = BERTopic()
+        topics, _ = model.fit_transform(texts)
+        topic_words = [model.get_topic(i) for i in range(len(set(topics))) if model.get_topic(i)]
+        topic_word_lists = [[word for word, _ in words] for words in topic_words if words]
+
+        tokens = [word_tokenize(t.lower()) for t in texts]
+        dictionary = corpora.Dictionary(tokens)
+
+        coherence = compute_coherence(topic_word_lists, tokens, dictionary)
+        # print(f"\n[BERTopic] Group: {group_name}, Coherence: {coherence:.4f}")
+        # print(model.get_topic_info().head())
+        results[group_name] = {
+            "coherence": coherence,
+            "topics": topic_word_lists
+        }
+
+        # topic_info = model.get_topic_info()
+        # topic_info.to_csv(f"topics_{group_name}.csv", index=False)
+
+    flat_data = []
+    for group, info in results.items():
+        for i, topic in enumerate(info["topics"]):
+            flat_data.append({
+                "group": group,
+                "coherence": info["coherence"],
+                "topic_index": i,
+                "keywords": ", ".join(topic)
+            })
+    pd.DataFrame(flat_data).to_csv("bertopic_summary.csv", index=False)
+
+
+def run_top2vec(df):
+    print("Running Top2Vec...")
+    results = {}
+    min_docs_threshold = 30
+
+    for col in SUBJECT_COLUMNS:
+        group_name = col.replace("target_", "")
+        subset = df[df[col] == 1].copy()
+
+        if len(subset) < min_docs_threshold:
+            continue
+
+        print(f"\nProcessing group: {group_name} with {len(subset)} documents...")
+        texts = subset["text"].tolist()
+
+        try:
+            model = Top2Vec(documents=texts, speed="learn", workers=1)
+
+            num_topics = model.get_num_topics()
+            if num_topics == 0:
+                print(f"No topics found by Top2Vec for group {group_name}.")
+                continue
+
+            print(f"Found {num_topics} topics for group {group_name}.")
+
+            topic_words_np, _ = model.get_topics(num_topics) 
+            topic_word_lists = [list(map(str, words)) for words in topic_words_np]
+
+            if not topic_word_lists:
+                 print(f"No valid topic word lists generated by Top2Vec for group {group_name}.")
+                 continue
+
+            print(f"Tokenizing {len(texts)} documents for coherence calculation...")
+            tokens = [word_tokenize(t.lower()) for t in texts]
+            dictionary = corpora.Dictionary(tokens)
+
+            print(f"Calculating coherence for {num_topics} topics in group {group_name}...")
+            coherence = compute_coherence(topic_word_lists, tokens, dictionary)
+            print(f"[Top2Vec] Group: {group_name}, Average Coherence (c_v): {coherence:.4f}")
+
+            results[group_name] = {
+                "coherence": coherence,
+                "topics": topic_word_lists
+            }
+
+        except Exception as e:
+            print(f"Error processing group {group_name} with Top2Vec: {e}")
+            continue 
+
+    print("\nCreating Top2Vec summary CSV...")
+    flat_data = []
+    for group, info in results.items():
+        for i, topic_keywords in enumerate(info["topics"]):
+            flat_data.append({
+                "group": group,
+                "coherence": info["coherence"], 
+                "topic_index": i,              
+                "keywords": ", ".join(topic_keywords)
+            })
+
+    if flat_data:
+        summary_df = pd.DataFrame(flat_data)
+        summary_filename = "top2vec_summary.csv"
+        summary_df.to_csv(summary_filename, index=False)
+        print(f"Saved Top2Vec summary to {summary_filename}")
+    else:
+        print("No Top2Vec results were generated to create a summary file.")
+
+
+def run_lda(df, num_topics=10):
+    print("Running LDA...")
+    results = {}
+
+    for col in SUBJECT_COLUMNS:
+        subset = df[df[col] == 1].copy()
+        if len(subset) < 30:
+            continue  # skip small groups
+
+        group_name = col.replace("target_", "")
+        texts = subset["text"].tolist()
+
+        tokens = [word_tokenize(t.lower()) for t in texts]
+        dictionary = corpora.Dictionary(tokens)
+        corpus = [dictionary.doc2bow(text) for text in tokens]
+
+        lda = LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary)
+        topic_word_lists = []
+        for topic in lda.show_topics(num_topics=num_topics, num_words=10, formatted=False):
+            topic_word_lists.append([word for word, _ in topic[1]])
+
+        coherence = compute_coherence(topic_word_lists, tokens, dictionary)
+        # print(f"\n[LDA] Group: {group_name}, Coherence: {coherence:.4f}")
+        # for topic in lda.print_topics(num_words=5):
+        #     print(topic)
+        results[group_name] = {
+            "coherence": coherence,
+            "topics": topic_word_lists
+        }
+        # pd.DataFrame([
+        #     {"topic_index": i, "keywords": ", ".join(words)}
+        #     for i, words in enumerate(topic_word_lists)
+        # ]).to_csv(f"topics_lda_{group_name}.csv", index=False)
+
+    flat_data = []
+    for group, info in results.items():
+        for i, topic in enumerate(info["topics"]):
+            flat_data.append({
+                "group": group,
+                "coherence": info["coherence"],
+                "topic_index": i,
+                "keywords": ", ".join(topic)
+            })
+    pd.DataFrame(flat_data).to_csv("lda_summary.csv", index=False)
+
+
+if __name__ == "__main__":
+    df = load_and_filter_data()
+    # group_stats()
+    run_bertopic(df)
+    # run_top2vec(df)
+    # run_lda(df)
