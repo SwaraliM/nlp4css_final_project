@@ -126,6 +126,30 @@ def run_top2vec(df):
                 "topics": topic_word_lists
             }
 
+            # topic_sizes, topic_nums = model.get_topic_sizes()
+            
+            # topic_data = []
+
+            # for i in range(num_topics):
+            #     topic_num = topic_nums[i]
+            #     topic_size = topic_sizes[i]
+            #     words = topic_word_lists[i]
+            #     topic_name = f"{topic_num}_{'_'.join(words[:3])}"
+            #     topic_data.append({
+            #         "Topic": topic_num,
+            #         "Count": topic_size,
+            #         "Name": topic_name,
+            #         "Representation": ", ".join(words) # Comma-separated list of keywords
+            #     })
+
+            # topic_info_df = pd.DataFrame(topic_data)
+            # print("Top 5 Topics Info (Detailed - Not Saved in Summary):")
+            # print(topic_info_df.head())
+            
+            # topic_info_filename = f"top2vec_topics_{group_name}.csv"
+            # topic_info_df.to_csv(topic_info_filename, index=False)
+            # print(f"Saved detailed topic info to {topic_info_filename}")
+
         except Exception as e:
             print(f"Error processing group {group_name} with Top2Vec: {e}")
             continue 
