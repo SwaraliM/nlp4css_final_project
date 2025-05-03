@@ -9,15 +9,12 @@ This project aims to analyze hate speech in social media through two main resear
 ```
 nlp4css_final_project/
 ├── src/
-│   ├── rq1/                            # Team A: Topic modeling
-│   │   ├── data_processing/            # loading & prep of Measuring Hate Speech
-│   │   │   └── loader.py
-│   │   ├── models/                     # BERTopic, Top2Vec, LDA wrappers
-│   │   │   └── topic_models.py
-│   │   ├── analysis/                   # coherence scoring, qualitative checks
-│   │   │   └── evaluate_topics.py
-│   │   └── utils/                      # shared/helper functions
-│   │       └── text_utils.py
+│   │   ├── bert_subgroup_results/     # csv outputs from BERT topic modeling
+│   │   ├── top2vec_subgroup_results/  # csv outputs from Top2Vec topic modeling
+│   │   ├── bertopic_summary.xlsx      # Summary metrics for BERTopic
+│   │   ├── lda_summary.xlsx           # Summary metrics for LDA
+│   │   ├── top2vec_summary.xlsx       # Summary metrics for Top2Vec
+│   │   └── topic.py                   # Main script for topic modeling pipeline
 │   │
 │   └── rq2/                            # Team B: Supervised BERT classification
 │       ├── data_processing/            # loading & preprocessing
