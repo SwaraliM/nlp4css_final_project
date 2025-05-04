@@ -74,6 +74,15 @@ Results are saved in the `results/rq2` directory:
 - Model checkpoints
 - Visualization plots
 
+## Results
+| Model                                                                | Accuracy | Precision | Recall  | F1 Score |
+|----------------------------------------------------------------------|---------:|----------:|--------:|---------:|
+| Traditional (TF‑IDF + LR)                                            |   0.9379 |    0.9461 |  0.9225 |   0.9341 |
+| `bert-base-uncased`                                                  |   0.9646 |    0.9586 |  0.9677 |   0.9631 |
+| `Hate-speech-CNERG/bert-base-uncased-hatexplain-rationale-two`       |   0.9691 |    0.9632 |  0.9725 |   0.9678 |
+| `GroNLP/hateBERT`                                                    |   0.9679 |    0.9679 |  0.9679 |   0.9679 |
+
+
 ## Notes
 
 - The implementation assumes binary classification (hate/not-hate)
