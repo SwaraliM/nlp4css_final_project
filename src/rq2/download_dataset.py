@@ -7,7 +7,7 @@ from datasets import load_dataset
 def main(
     hf_name: str = "ucberkeley-dlab/measuring-hate-speech",
     split: str = "train",
-    output_path: str = "data/measuring_hate_speech.csv"
+    output_path: str = "data/measuring-hate-speech.csv"
 ):
     # Ensure output directory exists
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
