@@ -16,7 +16,7 @@ MODEL_CKPTS = {
 SAMPLE_CSV    = "data/lime_sample_set.csv"
 OUTPUT_PATH   = "results/rq2/lime_attributions_from_csv.json"
 NUM_LIME_FEATURES = 10
-NUM_LIME_SAMPLES  = 300  # adjust for speed / fidelity
+NUM_LIME_SAMPLES  = 300  
 
 def main():
     # 1. Load the fixed sample set

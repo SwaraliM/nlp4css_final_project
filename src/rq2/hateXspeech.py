@@ -8,10 +8,10 @@ The model predicts three labels:
     1 → normal
     2 → offensive
 
-We collapse this into binary ground‑truth by counting **hate speech** as 1 and
+We collapse this into binary ground-truth by counting **hate speech** as 1 and
 everything else as 0.
 
-Binary ground‑truth mapping:
+Binary ground-truth mapping:
     score > 0.5  → 1 (hate)
     score < -1   → 0 (counter/supportive)
 
@@ -74,7 +74,7 @@ def main(split: str, sample_size: int | None, batch_size: int) -> None:
     if len(tokenizer) != model.config.vocab_size:
         model.resize_token_embeddings(len(tokenizer))
 
-    # 🤗 pipeline automatically handles soft‑max; we ask for all class scores
+    # pipeline automatically handles soft-max; we ask for all class scores
     pipe = pipeline(
         "text-classification",
         model=model,
@@ -112,7 +112,7 @@ def main(split: str, sample_size: int | None, batch_size: int) -> None:
         y_true, y_pred, average="binary", zero_division=0
     )
 
-    print("\n📊  Results (neutral removed)")
+    print("\n  Results (neutral removed)")
     print(f"  samples evaluated : {len(y_true):,}")
     print(f"  accuracy          : {acc:.4f}")
     print(f"  precision         : {prec:.4f}")

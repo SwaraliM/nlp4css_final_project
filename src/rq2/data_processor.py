@@ -134,10 +134,10 @@ class DataProcessor:
             stratify=train_df["label"]
         )
 
-        # 3. (Optional) augment training set for class balance
+        # 3. augment training set for class balance
         train_df = self.augment_data(train_df)
 
-        # 4. (Optional) subset for quick tests
+        # 4. subset for quick tests
         if subset_size:
             train_df = train_df.sample(min(subset_size, len(train_df)), random_state=42).reset_index(drop=True)
             val_df   = val_df.sample(min(subset_size,   len(val_df)),   random_state=42).reset_index(drop=True)

@@ -45,17 +45,17 @@ def sample_fixed_by_label(df, flag_cols):
     return pd.DataFrame(records)
 
 def main():
-    # 1) Load & preprocess test set
+    # 1. Load & preprocess test set
     dp = DataProcessor(tokenizer_name="bert-base-uncased")
     _, _, test_df, *_ = dp.prepare_dataset(DATA_PATH)
 
-    # 2) Identify subgroup flags
+    # 2. Identify subgroup flags
     flag_cols = get_flag_columns(test_df)
 
-    # 3) Sample fixed examples by true label
+    # 3. Sample fixed examples by true label
     sample_df = sample_fixed_by_label(test_df, flag_cols)
 
-    # 4) Save CSV
+    # 4. Save CSV
     os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
     sample_df.to_csv(OUTPUT_CSV, index=False)
     print(f"Exported {len(sample_df)} fixed examples to {OUTPUT_CSV}")

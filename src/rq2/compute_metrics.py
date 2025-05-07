@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 def main():
     # 1. Load your fine‑tuned model
-    ckpt_dir = "results/rq2/GroNLP_hateBERT"   # <-- adjust to your actual path
+    ckpt_dir = "results/rq2/GroNLP_hateBERT"   
     print(f"Loading model from {ckpt_dir}...")
     trainer   = ModelTrainer.load_model(ckpt_dir, num_labels=2)
     

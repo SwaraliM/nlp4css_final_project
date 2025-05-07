@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Evaluate s-nlp/roberta_toxicity_classifier on the Measuring‑Hate‑Speech corpus.
+Evaluate s-nlp/roberta_toxicity_classifier on the Measuring-Hate-Speech corpus.
 
 Model labels
-    0 → neutral / non‑toxic
+    0 → neutral / non-toxic
     1 → toxic
 
-Ground‑truth mapping (identical to earlier script):
+Ground-truth mapping (identical to earlier script):
     hate_speech_score > 0.5  → 1  (hate ⇒ toxic)
-    hate_speech_score < −1   → 0  (counter/supportive ⇒ non‑toxic)
+    hate_speech_score < -1   → 0  (counter/supportive ⇒ non-toxic)
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ def get_device() -> torch.device:
 
 
 def map_score_to_label(score: float) -> int:
-    """Binary label: 1 = hate (toxic), 0 = counter/supportive (non‑toxic)."""
+    """Binary label: 1 = hate (toxic), 0 = counter/supportive (non-toxic)."""
     return int(score > 0)          # dataset already filtered to |score| large
 
 
@@ -39,7 +39,7 @@ def main(split: str, sample_size: int | None, batch_size: int) -> None:
     print(f"▶ loading '{split}' split …", flush=True)
     ds = load_dataset("ucberkeley-dlab/measuring-hate-speech", split=split)
 
-    # Keep only hate (>0.5) and counter/supportive (<‑1)
+    # Keep only hate (>0.5) and counter/supportive (<-1)
     ds = ds.filter(
         lambda ex: (ex["hate_speech_score"] > 0.5) or (ex["hate_speech_score"] < -1),
         num_proc=4,
@@ -101,7 +101,7 @@ def main(split: str, sample_size: int | None, batch_size: int) -> None:
     print(f"  accuracy          : {acc:.4f}")
     print(f"  precision         : {prec:.4f}")
     print(f"  recall            : {rec:.4f}")
-    print(f"  F1‑score          : {f1:.4f}")
+    print(f"  F1-score          : {f1:.4f}")
 
 
 # ────────────────────────── CLI glue ─────────────────────────

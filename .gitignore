@@ -28,8 +28,6 @@ ENV/
 #data
 data/
 
-#results
-results/
 
 # IDE
 .idea/
@@ -43,7 +41,7 @@ results/
 
 # Data files
 # *.csv
-*.json
+# *.json
 *.pkl
 *.h5
 *.npy
