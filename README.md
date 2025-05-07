@@ -2,39 +2,9 @@
 
 ## Project Overview
 This project aims to analyze hate speech in social media through two main research questions:
-1. What identity-specific terms are most commonly associated with hate speech in social media?
-2. How do different hate speech detection models perform in terms of their reliance on identity-specific terms, and what does this suggest about their generalizability?
 
-## Project Structure
-```
-nlp4css_final_project/
-├── src/
-│   │   ├── bert_subgroup_results/     # csv outputs from BERT topic modeling
-│   │   ├── top2vec_subgroup_results/  # csv outputs from Top2Vec topic modeling
-│   │   ├── bertopic_summary.xlsx      # Summary metrics for BERTopic
-│   │   ├── lda_summary.xlsx           # Summary metrics for LDA
-│   │   ├── top2vec_summary.xlsx       # Summary metrics for Top2Vec
-│   │   └── topic.py                   # Main script for topic modeling pipeline
-│   │
-│   └── rq2/                            # Team B: Supervised BERT classification
-│       ├── data_processing/            # loading & preprocessing
-│       │   └── loader.py
-│       ├── models/                     # fine-tuning & prediction
-│       │   └── finetune.py
-│       ├── evaluation/                 # subgroup metrics & robustness tests
-│       │   └── subgroup_eval.py
-│       ├── interpretability/           # LIME, SHAP wrappers
-│       │   └── explainers.py
-│       └── utils/                      # config, logger, common funcs
-│           └── config.py
-│
-├── notebooks/
-│   ├── rq1/                            # exploratory & demo notebooks for RQ1
-│   └── rq2/                            # experiments & visualizations for RQ2
-│
-├── requirements.txt
-└── README.md
-```
+1. **RQ1**: How do the semantic patterns and topic clusters of hate speech differ across identity groups (e.g., race, religion, gender) when analyzed using neural topic modeling?
+2. **RQ2**: How do various hate speech detection models perform, particularly on subgroup-targeted content, and what does this reveal about fairness and generalization?
 
 ## Setup Instructions
 1. Create a virtual environment:
@@ -47,108 +17,44 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```bash
 pip install -r requirements.txt
 ```
+## Implementation
 
-## Research Questions Implementation
+The project is organized into two pipelines corresponding to RQ1 and RQ2:
 
-### Research Question 1: Identity-Specific Terms Analysis
-Team A will focus on identifying and analyzing identity-specific terms in hate speech using topic modeling approaches.
+### RQ1: Identity-Specific Topic Modeling
+- We extract posts with high hate scores and group them by 45 identity subgroup flags.
+- For each group, we apply three topic modeling methods:
+  - **BERTopic**: Transformer-based topic modeling using sentence embeddings.
+  - **Top2Vec**: Learns joint topic and document embeddings.
+  - **LDA**: Traditional probabilistic topic modeling with coherence evaluation.
+- Each model outputs top keywords per topic and coherence scores using the Cv metric.
+- Results are aggregated and visualized using `analyze.py`.
 
-#### Implementation Steps:
-1. **Data Processing** (`src/rq1/data_processing/`)
-   - Load and preprocess the Measuring Hate Speech dataset
-   - Implement text cleaning and normalization
-   - Extract identity-specific terms
+**Key scripts:**
+- `topic.py`: Loads data, filters by subgroup, runs topic models, and computes coherence.
+- `analyze.py`: Extracts top words and exports coherence summaries per model.
 
-2. **Topic Modeling** (`src/rq1/models/`)
-   - Implement BERTopic, Top2Vec, and LDA models
-   - Fine-tune models for optimal performance
-   - Extract and analyze topics
+### RQ2: Hate Speech Classification and Fairness Evaluation
+- Compares four classifiers: TF–IDF + LR, BERT-base, HateBERT, and HateXplain.
+- Preprocessing includes hate score filtering, stratified splitting, and tokenization.
+- Models are trained using PyTorch and Hugging Face Transformers.
+- Fairness is analyzed via subgroup-level metrics and disparity statistics (F1, FPR, FNR).
+- LIME is used to explain model predictions on edge-case examples.
+- Code Modules:
+  - `data_processor.py`: Cleans text, filters labels, and processes subgroups
+  - `model_trainer.py`: Trains and fine-tunes models
+  - `evaluator.py`: Computes metrics and fairness disparities
+  - `lime_analysis.py`: Performs LIME-based interpretability
+  - `main.py`: End-to-end orchestration of training, evaluation, and analysis
 
-3. **Analysis** (`src/rq1/analysis/`)
-   - Evaluate topic coherence
-   - Perform qualitative analysis of topics
-   - Identify identity-specific patterns
+Both pipelines are modular and support reproducibility and diagnostic evaluation across identity groups.
 
-### Research Question 2: Model Interpretability Analysis
-Team B will focus on analyzing model performance and interpretability using pre-trained hate speech detection models.
+## Dataset
+We use the [Measuring Hate Speech dataset](ucberkeley-dlab/measuring-hate-speech) by Kennedy et al. (2020), containing over 39,000 annotated social media comments with subgroup flags and hate speech intensity scores. We binarize the data into hate and non-hate using score thresholds, and focus our analysis on 45 identity subgroups.
+@article{kennedy2020constructing,
+  title={Constructing interval variables via faceted Rasch measurement and multitask deep learning: a hate speech application},
+  author={Kennedy, Chris J and Bacon, Geoff and Sahn, Alexander and von Vacano, Claudia},
+  journal={arXiv preprint arXiv:2009.10277},
+  year={2020}
+}
 
-#### Implementation Steps:
-1. **Data Processing** (`src/rq2/data_processing/`)
-   - Load and preprocess data for model training
-   - Create train/validation/test splits
-   - Implement data augmentation if needed
-
-2. **Model Implementation** (`src/rq2/models/`)
-   - Implement and fine-tune pre-trained models:
-     - Toxigen Hate BERT
-     - Cardiffnlp/twitter-roberta-base-hate-latest
-     - Hate-speech-CNERG/bert-base-uncased-hatexplain
-   - Set up model evaluation pipeline
-
-3. **Evaluation** (`src/rq2/evaluation/`)
-   - Implement subgroup analysis
-   - Calculate performance metrics
-   - Analyze model robustness
-
-4. **Interpretability** (`src/rq2/interpretability/`)
-   - Implement LIME and SHAP analysis
-   - Analyze feature importance
-   - Visualize model decisions
-
-## Team Roles and Responsibilities
-
-### Team A (RQ1): Topic Modeling Team
-- **Member 1**: Data Processing
-  - Implement data loading and preprocessing
-  - Create data documentation
-  - Set up data pipelines
-
-- **Member 2**: Model Implementation
-  - Implement topic modeling approaches
-  - Fine-tune models
-  - Document model configurations
-
-### Team B (RQ2): Model Analysis Team
-- **Member 3**: Model Implementation
-  - Implement and fine-tune hate speech models
-  - Set up evaluation pipeline
-  - Document model performance
-
-results:
-| Model                    | Accuracy | Precision | Recall | F1-score |
-|--------------------------|----------|-----------|--------|----------|
-| /roberta_toxicity_classifier | 0.8508   | 0.7795    | 0.9613 | 0.8609   |
-| hateXplain               | 0.7626   | 0.7492    | 0.7601 | 0.7546   |
-
-
-- **Member 4**: Interpretability Analysis
-  - Implement LIME/SHAP analysis
-  - Analyze model weights
-  - Create interpretability visualizations
-
-## Dependencies
-- Python 3.8+
-- PyTorch
-- Transformers
-- scikit-learn
-- pandas
-- numpy
-- matplotlib
-- seaborn
-- lime
-- shap
-- bertopic
-- top2vec
-- gensim (for LDA)
-- spacy
-- nltk
-
-## Notebooks
-- `notebooks/rq1/`: Contains exploratory analysis and topic modeling experiments
-- `notebooks/rq2/`: Contains model training, evaluation, and interpretability experiments
-
-## Contributing
-1. Create a new branch for your feature: `git checkout -b feature/your-feature-name`
-2. Commit your changes: `git commit -m 'Add some feature'`
-3. Push to the branch: `git push origin feature/your-feature-name`
-4. Submit a pull request 
