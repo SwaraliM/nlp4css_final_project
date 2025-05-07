@@ -50,11 +50,12 @@ The project is organized into two pipelines corresponding to RQ1 and RQ2:
 Both pipelines are modular and support reproducibility and diagnostic evaluation across identity groups.
 
 ## Dataset
-We use the [Measuring Hate Speech dataset](ucberkeley-dlab/measuring-hate-speech) by Kennedy et al. (2020), containing over 39,000 annotated social media comments with subgroup flags and hate speech intensity scores. We binarize the data into hate and non-hate using score thresholds, and focus our analysis on 45 identity subgroups.
+We use the [Measuring Hate Speech dataset](https://huggingface.co/datasets/ucberkeley-dlab/measuring-hate-speech) by Kennedy et al. (2020), containing over 39,000 annotated social media comments with subgroup flags and hate speech intensity scores. We binarize the data into hate and non-hate using score thresholds, and focus our analysis on 45 identity subgroups.
+```
 @article{kennedy2020constructing,
   title={Constructing interval variables via faceted Rasch measurement and multitask deep learning: a hate speech application},
   author={Kennedy, Chris J and Bacon, Geoff and Sahn, Alexander and von Vacano, Claudia},
   journal={arXiv preprint arXiv:2009.10277},
   year={2020}
 }
-
+```
